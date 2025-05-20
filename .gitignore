@@ -6,3 +6,6 @@ build
 
 .idea
 .kotlin
+
+*.bmp
+output_image
