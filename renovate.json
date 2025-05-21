@@ -4,18 +4,15 @@
     "config:recommended",
     "group:allNonMajor"
   ],
-  "schedule": [
-    "before 6am on the first day of the month"
-  ],
+  "prConcurrentLimit": 1,
   "packageRules": [
     {
       "matchUpdateTypes": [
         "major"
       ],
       "schedule": [
-        "* * * * 1"
-      ],
-      "prConcurrentLimit": 1
+        "before 6am on monday"
+      ]
     },
     {
       "matchUpdateTypes": [
@@ -25,9 +22,8 @@
         "digest"
       ],
       "schedule": [
-        "before 6am on monday"
-      ],
-      "prConcurrentLimit": 1
+        "before 6am on the first day of the month"
+      ]
     }
   ]
 }
