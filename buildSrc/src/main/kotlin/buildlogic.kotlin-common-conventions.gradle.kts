@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    id  ("org.jlleitschuh.gradle.ktlint")
 }
 
 repositories {
@@ -22,3 +23,4 @@ java {
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
+
