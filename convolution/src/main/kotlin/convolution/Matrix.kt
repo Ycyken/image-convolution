@@ -6,18 +6,33 @@ interface Matrix<T> {
     val rows: Int
     val cols: Int
 
-    operator fun get(row: Int, col: Int): Result<T>
+    operator fun get(
+        row: Int,
+        col: Int,
+    ): Result<T>
 
-    operator fun set(row: Int, col: Int, value: T): Result<Unit>
+    operator fun set(
+        row: Int,
+        col: Int,
+        value: T,
+    ): Result<Unit>
 
-    fun getOrDefault(row: Int, col: Int, default: T): T{
+    fun getOrDefault(
+        row: Int,
+        col: Int,
+        default: T,
+    ): T {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
             return default
         }
         return get(row, col).getOrThrow()
     }
 
-    fun setOrIgnore(row: Int, col: Int, value: T){
+    fun setOrIgnore(
+        row: Int,
+        col: Int,
+        value: T,
+    ) {
         if (row in 0 until this.rows && col in 0 until this.cols) {
             set(row, col, value)
         }
@@ -40,11 +55,10 @@ class ByteMatrix private constructor(
     override val rows: Int,
     override val cols: Int,
 ) : Matrix<Byte> {
-
     constructor(matrix: Array<ByteArray>) : this(
         matrix,
         matrix.size,
-        matrix.firstOrNull()?.size ?: 0
+        matrix.firstOrNull()?.size ?: 0,
     ) {
         require(matrix.isNotEmpty()) { "Matrix must be not empty" }
         val cols = matrix[0].size
@@ -54,17 +68,24 @@ class ByteMatrix private constructor(
     constructor(rows: Int, cols: Int) : this(
         Array(rows) { ByteArray(cols) },
         rows,
-        cols
+        cols,
     )
 
-    override fun get(row: Int, col: Int): Result<Byte> {
+    override fun get(
+        row: Int,
+        col: Int,
+    ): Result<Byte> {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
             return Result.failure(IndexOutOfBoundsException("Invalid row or column:  $row, $col"))
         }
         return Result.success(matrix[row][col])
     }
 
-    override fun set(row: Int, col: Int, value: Byte): Result<Unit> {
+    override fun set(
+        row: Int,
+        col: Int,
+        value: Byte,
+    ): Result<Unit> {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
             return Result.failure(IndexOutOfBoundsException("Invalid row or column: $row, $col"))
         }
@@ -78,7 +99,7 @@ class ByteMatrix private constructor(
                 action(
                     rowIndex,
                     colIndex,
-                    byte
+                    byte,
                 )
             }
         }
@@ -93,7 +114,7 @@ class FloatMatrix private constructor(
     constructor(matrix: Array<FloatArray>) : this(
         matrix,
         matrix.size,
-        matrix.firstOrNull()?.size ?: 0
+        matrix.firstOrNull()?.size ?: 0,
     ) {
         require(matrix.isNotEmpty()) { "Matrix must be not empty" }
         val cols = matrix[0].size
@@ -103,17 +124,24 @@ class FloatMatrix private constructor(
     constructor(rows: Int, cols: Int) : this(
         Array(rows) { FloatArray(cols) },
         rows,
-        cols
+        cols,
     )
 
-    override fun get(row: Int, col: Int): Result<Float> {
+    override fun get(
+        row: Int,
+        col: Int,
+    ): Result<Float> {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
             return Result.failure(IndexOutOfBoundsException("Invalid row or column:  $row, $col"))
         }
         return Result.success(matrix[row][col])
     }
 
-    override fun set(row: Int, col: Int, value: Float): Result<Unit> {
+    override fun set(
+        row: Int,
+        col: Int,
+        value: Float,
+    ): Result<Unit> {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
             return Result.failure(IndexOutOfBoundsException("Invalid row or column: $row, $col"))
         }
@@ -127,7 +155,7 @@ class FloatMatrix private constructor(
                 action(
                     rowIndex,
                     colIndex,
-                    byte
+                    byte,
                 )
             }
         }

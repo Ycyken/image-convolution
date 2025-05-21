@@ -8,18 +8,20 @@ fun Matrix<Byte>.convolve(kernel: FloatMatrix): Result<ByteMatrix> {
     }
     val kernelCenter = kernel.rows / 2
 
-    val convolved = Array(this.rows) { row ->
-        ByteArray(this.cols) { col ->
-            var convolvedValue = 0.0
-            kernel.forEachIndexed { rowK, colK, valueK ->
-                convolvedValue += valueK * this.getOrDefault(
-                    row + (rowK - kernelCenter),
-                    col + (colK - kernelCenter),
-                    0
-                )
+    val convolved =
+        Array(this.rows) { row ->
+            ByteArray(this.cols) { col ->
+                var convolvedValue = 0.0
+                kernel.forEachIndexed { rowK, colK, valueK ->
+                    convolvedValue += valueK *
+                        this.getOrDefault(
+                            row + (rowK - kernelCenter),
+                            col + (colK - kernelCenter),
+                            0,
+                        )
+                }
+                convolvedValue.roundToInt().toByte()
             }
-            convolvedValue.roundToInt().toByte()
         }
-    }
     return Result.success(ByteMatrix(convolved))
 }
