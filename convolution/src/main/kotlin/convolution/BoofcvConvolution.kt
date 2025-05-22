@@ -6,7 +6,10 @@ import boofcv.struct.convolve.Kernel2D_F32
 import boofcv.struct.image.GrayF32
 import java.awt.image.BufferedImage
 
-fun convolveBoofcv(image: BufferedImage, kernel: FloatMatrix): BufferedImage {
+fun convolveBoofcv(
+    image: BufferedImage,
+    kernel: FloatMatrix,
+): BufferedImage {
     val planar = ConvertBufferedImage.convertFromPlanar(image, null, true, GrayF32::class.java)
     val output = planar.createSameShape()
     val kernel = Kernel2D_F32(kernel.cols, kernel.matrix.flatMap { it.asList() }.toFloatArray())

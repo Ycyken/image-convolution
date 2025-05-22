@@ -6,7 +6,9 @@ import java.awt.image.BufferedImage
 import kotlin.math.roundToInt
 
 enum class ImageType {
-    GRAY, RGB, UNKNOWN
+    GRAY,
+    RGB,
+    UNKNOWN,
 }
 
 fun detectImageType(image: BufferedImage): ImageType {
@@ -22,7 +24,7 @@ fun detectImageType(image: BufferedImage): ImageType {
 
 fun convolve(
     input: BufferedImage,
-    kernel: FloatMatrix
+    kernel: FloatMatrix,
 ): BufferedImage {
     return when (detectImageType(input)) {
         ImageType.GRAY -> convolveGray(input, kernel)
@@ -33,7 +35,7 @@ fun convolve(
 
 private fun convolveGray(
     image: BufferedImage,
-    kernel: FloatMatrix
+    kernel: FloatMatrix,
 ): BufferedImage {
     val gray = ConvertBufferedImage.convertFromSingle(image, null, GrayU8::class.java)
     val matrix = gray.toMatrix()
@@ -44,14 +46,15 @@ private fun convolveGray(
 
 private fun convolveRGB(
     image: BufferedImage,
-    kernel: FloatMatrix
+    kernel: FloatMatrix,
 ): BufferedImage {
-    val planar = ConvertBufferedImage.convertFromPlanar(
-        image,
-        null,
-        true,
-        GrayU8::class.java
-    )
+    val planar =
+        ConvertBufferedImage.convertFromPlanar(
+            image,
+            null,
+            true,
+            GrayU8::class.java,
+        )
     val matrices = planar.toMatrices()
     val convolvedMatrices = matrices.map { it.convolve(kernel) }
     val convolvedGrays = convolvedMatrices.map { GrayU8(it.matrix) }
@@ -73,11 +76,11 @@ fun Matrix<Byte>.convolve(kernel: FloatMatrix): ByteMatrix {
                 var convolvedValue = 0.0
                 kernel.forEachIndexed { rowK, colK, valueK ->
                     convolvedValue += valueK *
-                            this.getOrDefault(
-                                row + (rowK - kernelCenter),
-                                col + (colK - kernelCenter),
-                                0,
-                            )
+                        this.getOrDefault(
+                            row + (rowK - kernelCenter),
+                            col + (colK - kernelCenter),
+                            0,
+                        )
                 }
                 convolvedValue.roundToInt().coerceIn(0, 255).toByte()
             }
