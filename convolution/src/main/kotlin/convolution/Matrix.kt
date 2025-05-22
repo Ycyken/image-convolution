@@ -1,6 +1,7 @@
 package convolution
 
 import boofcv.struct.image.GrayU8
+import boofcv.struct.image.Planar
 
 interface Matrix<T> {
     val rows: Int
@@ -9,13 +10,13 @@ interface Matrix<T> {
     operator fun get(
         row: Int,
         col: Int,
-    ): Result<T>
+    ): T
 
     operator fun set(
         row: Int,
         col: Int,
         value: T,
-    ): Result<Unit>
+    )
 
     fun getOrDefault(
         row: Int,
@@ -25,7 +26,7 @@ interface Matrix<T> {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
             return default
         }
-        return get(row, col).getOrThrow()
+        return get(row, col)
     }
 
     fun setOrIgnore(
@@ -42,8 +43,15 @@ interface Matrix<T> {
 }
 
 fun GrayU8.toMatrix(): ByteMatrix {
-    val byteMatrix = Array(this.height) { y -> ByteArray(this.width) { x -> this.get(x, y).toByte() } }
+    val byteMatrix =
+        Array(this.height) { y -> ByteArray(this.width) { x -> this.get(x, y).toByte() } }
     return ByteMatrix(byteMatrix)
+}
+
+fun Planar<GrayU8>.toMatrices(): List<ByteMatrix> {
+    return this.bands.map { gray ->
+        gray.toMatrix()
+    }
 }
 
 /**
@@ -74,23 +82,22 @@ class ByteMatrix private constructor(
     override fun get(
         row: Int,
         col: Int,
-    ): Result<Byte> {
+    ): Byte {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
-            return Result.failure(IndexOutOfBoundsException("Invalid row or column:  $row, $col"))
+            throw IndexOutOfBoundsException("Invalid row or column:  $row, $col")
         }
-        return Result.success(matrix[row][col])
+        return matrix[row][col]
     }
 
     override fun set(
         row: Int,
         col: Int,
         value: Byte,
-    ): Result<Unit> {
+    ) {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
-            return Result.failure(IndexOutOfBoundsException("Invalid row or column: $row, $col"))
+            throw IndexOutOfBoundsException("Invalid row or column: $row, $col")
         }
         matrix[row][col] = value
-        return Result.success(Unit)
     }
 
     override fun forEachIndexed(action: (row: Int, col: Int, value: Byte) -> Unit) {
@@ -107,7 +114,7 @@ class ByteMatrix private constructor(
 }
 
 class FloatMatrix private constructor(
-    private val matrix: Array<FloatArray>,
+    val matrix: Array<FloatArray>,
     override val rows: Int,
     override val cols: Int,
 ) : Matrix<Float> {
@@ -130,23 +137,22 @@ class FloatMatrix private constructor(
     override fun get(
         row: Int,
         col: Int,
-    ): Result<Float> {
+    ): Float {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
-            return Result.failure(IndexOutOfBoundsException("Invalid row or column:  $row, $col"))
+            throw IndexOutOfBoundsException("Invalid row or column:  $row, $col")
         }
-        return Result.success(matrix[row][col])
+        return matrix[row][col]
     }
 
     override fun set(
         row: Int,
         col: Int,
         value: Float,
-    ): Result<Unit> {
+    ) {
         if (row !in 0 until this.rows || col !in 0 until this.cols) {
-            return Result.failure(IndexOutOfBoundsException("Invalid row or column: $row, $col"))
+            throw IndexOutOfBoundsException("Invalid row or column: $row, $col")
         }
         matrix[row][col] = value
-        return Result.success(Unit)
     }
 
     override fun forEachIndexed(action: (row: Int, col: Int, value: Float) -> Unit) {
