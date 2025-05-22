@@ -79,7 +79,7 @@ fun Matrix<Byte>.convolve(kernel: FloatMatrix): ByteMatrix {
                                 0,
                             )
                 }
-                convolvedValue.roundToInt().toByte()
+                convolvedValue.roundToInt().coerceIn(0, 255).toByte()
             }
         }
     return ByteMatrix(convolved)
