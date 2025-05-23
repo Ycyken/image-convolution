@@ -8,4 +8,6 @@ build
 .kotlin
 
 *.bmp
+*.jpg
+*.png
 output_image
