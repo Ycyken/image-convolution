@@ -8,11 +8,11 @@ import java.awt.image.BufferedImage
 
 fun convolveBoofcv(
     image: BufferedImage,
-    kernel: FloatMatrix,
+    kernel: Kernel,
 ): BufferedImage {
     val planar = ConvertBufferedImage.convertFromPlanar(image, null, true, GrayF32::class.java)
     val output = planar.createSameShape()
-    val kernel = Kernel2D_F32(kernel.cols, kernel.matrix.flatMap { it.asList() }.toFloatArray())
+    val kernel = Kernel2D_F32(kernel.width, kernel.matrix.flatMap { it.asList() }.toFloatArray())
 
     planar.bands.forEachIndexed { i, band ->
         val convolvedBand = output.getBand(i)

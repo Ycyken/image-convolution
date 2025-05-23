@@ -11,7 +11,7 @@ enum class ImageType {
     UNKNOWN,
 }
 
-fun detectImageType(image: BufferedImage): ImageType {
+private fun detectImageType(image: BufferedImage): ImageType {
     val numComponents = image.colorModel.numComponents
     val bits = image.sampleModel.getSampleSize(0)
 
@@ -24,7 +24,7 @@ fun detectImageType(image: BufferedImage): ImageType {
 
 fun convolve(
     input: BufferedImage,
-    kernel: FloatMatrix,
+    kernel: Kernel,
 ): BufferedImage {
     return when (detectImageType(input)) {
         ImageType.GRAY -> convolveGray(input, kernel)
@@ -35,18 +35,16 @@ fun convolve(
 
 private fun convolveGray(
     image: BufferedImage,
-    kernel: FloatMatrix,
+    kernel: Kernel,
 ): BufferedImage {
     val gray = ConvertBufferedImage.convertFromSingle(image, null, GrayU8::class.java)
-    val matrix = gray.toMatrix()
-    val convolvedMatrix = matrix.convolve(kernel)
-    val grayConvolved = GrayU8(convolvedMatrix.matrix)
-    return ConvertBufferedImage.convertTo(grayConvolved, null)
+    val convolved = gray.convolve(kernel)
+    return ConvertBufferedImage.convertTo(convolved, null)
 }
 
 private fun convolveRGB(
     image: BufferedImage,
-    kernel: FloatMatrix,
+    kernel: Kernel,
 ): BufferedImage {
     val planar =
         ConvertBufferedImage.convertFromPlanar(
@@ -55,35 +53,56 @@ private fun convolveRGB(
             true,
             GrayU8::class.java,
         )
-    val matrices = planar.toMatrices()
-    val convolvedMatrices = matrices.map { it.convolve(kernel) }
-    val convolvedGrays = convolvedMatrices.map { GrayU8(it.matrix) }
-
-    val convolvedPlanar = planar.createSameShape()
-    convolvedGrays.forEachIndexed { i, mat -> convolvedPlanar.setBand(i, mat) }
-    return ConvertBufferedImage.convertTo_U8(convolvedPlanar, null, true)
+    val convolved = planar.createSameShape()
+    planar.bands.forEachIndexed { i, band -> convolved.setBand(i, band.convolve(kernel)) }
+    return ConvertBufferedImage.convertTo_U8(convolved, null, true)
 }
 
-fun Matrix<Byte>.convolve(kernel: FloatMatrix): ByteMatrix {
-    if (kernel.rows % 2 == 0 || kernel.rows != kernel.cols) {
-        throw IllegalArgumentException("Kernel must be square matrix with odd size")
-    }
-    val kernelCenter = kernel.rows / 2
+private fun <T : Number> convolve(
+    input: ReadableMatrix<T>,
+    kernel: Kernel,
+    output: WritableMatrix<T>,
+    transform: (Float) -> T,
+) {
+    require(kernel.width % 2 == 1 && kernel.width == kernel.height) { "Kernel must be square matrix with odd size" }
+    require(input.width == output.width && input.height == output.height) { "Input matrix must be same size as output matrix" }
 
-    val convolved =
-        Array(this.rows) { row ->
-            ByteArray(this.cols) { col ->
-                var convolvedValue = 0.0
-                kernel.forEachIndexed { rowK, colK, valueK ->
-                    convolvedValue += valueK *
-                        this.getOrDefault(
-                            row + (rowK - kernelCenter),
-                            col + (colK - kernelCenter),
-                            0,
-                        )
-                }
-                convolvedValue.roundToInt().coerceIn(0, 255).toByte()
+    val kernelCenter = kernel.width / 2
+    input.forEachIndexed { x, y, inputValue ->
+        var convolvedValue = 0.0F
+        var usedWeights = 0.0F
+        kernel.forEachIndexed { kernelX, kernelY, kernelValue ->
+            try {
+                val correspondingValue =
+                    input[
+                        x + (kernelX - kernelCenter),
+                        y + (kernelY - kernelCenter),
+                    ].toFloat()
+                convolvedValue += correspondingValue * kernelValue
+                usedWeights += kernelValue
+            } catch (_: Exception) {
             }
         }
-    return ByteMatrix(convolved)
+
+        if (usedWeights != 0.0F) {
+            convolvedValue /= usedWeights
+        }
+        val transformedValue = transform(convolvedValue)
+        output.unsafeSet(x, y, transformedValue)
+    }
+}
+
+internal fun GrayU8.convolve(kernel: Kernel): GrayU8 {
+    val input = MatrixAdapter(this)
+    val output = MatrixAdapter(this.createSameShape())
+    val transform = { x: Float -> x.roundToInt().coerceIn(0, 255) }
+    convolve(input, kernel, output, transform)
+    return output.gray
+}
+
+internal fun Kernel.convolve(other: Kernel): Kernel {
+    val output = Kernel(this.width, this.height)
+    val transform = { x: Float -> x.coerceIn(0.0F, 255.0F) }
+    convolve(this, other, output, transform)
+    return output
 }

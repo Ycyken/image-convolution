@@ -1,169 +1,37 @@
 package convolution
 
-import boofcv.struct.image.GrayU8
-import boofcv.struct.image.Planar
-
-interface Matrix<T> {
-    val rows: Int
-    val cols: Int
+interface ReadableMatrix<out T> {
+    val width: Int
+    val height: Int
 
     operator fun get(
-        row: Int,
-        col: Int,
+        x: Int,
+        y: Int,
     ): T
 
+    fun unsafeGet(
+        x: Int,
+        y: Int,
+    ): T = get(x, y)
+
+    fun forEachIndexed(action: (x: Int, y: Int, value: T) -> Unit)
+}
+
+interface WritableMatrix<in T> {
+    val width: Int
+    val height: Int
+
     operator fun set(
-        row: Int,
-        col: Int,
+        x: Int,
+        y: Int,
         value: T,
     )
 
-    fun getOrDefault(
-        row: Int,
-        col: Int,
-        default: T,
-    ): T {
-        if (row !in 0 until this.rows || col !in 0 until this.cols) {
-            return default
-        }
-        return get(row, col)
-    }
-
-    fun setOrIgnore(
-        row: Int,
-        col: Int,
+    fun unsafeSet(
+        x: Int,
+        y: Int,
         value: T,
-    ) {
-        if (row in 0 until this.rows && col in 0 until this.cols) {
-            set(row, col, value)
-        }
-    }
-
-    fun forEachIndexed(action: (row: Int, col: Int, value: T) -> Unit)
+    ) = set(x, y, value)
 }
 
-fun GrayU8.toMatrix(): ByteMatrix {
-    val byteMatrix =
-        Array(this.height) { y -> ByteArray(this.width) { x -> this.get(x, y).toByte() } }
-    return ByteMatrix(byteMatrix)
-}
-
-fun Planar<GrayU8>.toMatrices(): List<ByteMatrix> {
-    return this.bands.map { gray ->
-        gray.toMatrix()
-    }
-}
-
-/**
- * Can't use Generics for Matrix classes since ByteArray and FloatArray are not generalized
- * and differs from Array<Byte> and Array<Float> by performance.
- */
-class ByteMatrix private constructor(
-    val matrix: Array<ByteArray>,
-    override val rows: Int,
-    override val cols: Int,
-) : Matrix<Byte> {
-    constructor(matrix: Array<ByteArray>) : this(
-        matrix,
-        matrix.size,
-        matrix.firstOrNull()?.size ?: 0,
-    ) {
-        require(matrix.isNotEmpty()) { "Matrix must be not empty" }
-        val cols = matrix[0].size
-        require(matrix.all { it.size == cols }) { "Matrix must be rectangle form" }
-    }
-
-    constructor(rows: Int, cols: Int) : this(
-        Array(rows) { ByteArray(cols) },
-        rows,
-        cols,
-    )
-
-    override fun get(
-        row: Int,
-        col: Int,
-    ): Byte {
-        if (row !in 0 until this.rows || col !in 0 until this.cols) {
-            throw IndexOutOfBoundsException("Invalid row or column:  $row, $col")
-        }
-        return matrix[row][col]
-    }
-
-    override fun set(
-        row: Int,
-        col: Int,
-        value: Byte,
-    ) {
-        if (row !in 0 until this.rows || col !in 0 until this.cols) {
-            throw IndexOutOfBoundsException("Invalid row or column: $row, $col")
-        }
-        matrix[row][col] = value
-    }
-
-    override fun forEachIndexed(action: (row: Int, col: Int, value: Byte) -> Unit) {
-        matrix.forEachIndexed { rowIndex, row ->
-            row.forEachIndexed { colIndex, byte ->
-                action(
-                    rowIndex,
-                    colIndex,
-                    byte,
-                )
-            }
-        }
-    }
-}
-
-class FloatMatrix private constructor(
-    val matrix: Array<FloatArray>,
-    override val rows: Int,
-    override val cols: Int,
-) : Matrix<Float> {
-    constructor(matrix: Array<FloatArray>) : this(
-        matrix,
-        matrix.size,
-        matrix.firstOrNull()?.size ?: 0,
-    ) {
-        require(matrix.isNotEmpty()) { "Matrix must be not empty" }
-        val cols = matrix[0].size
-        require(matrix.all { it.size == cols }) { "Matrix must be rectangle form" }
-    }
-
-    constructor(rows: Int, cols: Int) : this(
-        Array(rows) { FloatArray(cols) },
-        rows,
-        cols,
-    )
-
-    override fun get(
-        row: Int,
-        col: Int,
-    ): Float {
-        if (row !in 0 until this.rows || col !in 0 until this.cols) {
-            throw IndexOutOfBoundsException("Invalid row or column:  $row, $col")
-        }
-        return matrix[row][col]
-    }
-
-    override fun set(
-        row: Int,
-        col: Int,
-        value: Float,
-    ) {
-        if (row !in 0 until this.rows || col !in 0 until this.cols) {
-            throw IndexOutOfBoundsException("Invalid row or column: $row, $col")
-        }
-        matrix[row][col] = value
-    }
-
-    override fun forEachIndexed(action: (row: Int, col: Int, value: Float) -> Unit) {
-        matrix.forEachIndexed { rowIndex, row ->
-            row.forEachIndexed { colIndex, byte ->
-                action(
-                    rowIndex,
-                    colIndex,
-                    byte,
-                )
-            }
-        }
-    }
-}
+interface Matrix<T> : ReadableMatrix<T>, WritableMatrix<T>
