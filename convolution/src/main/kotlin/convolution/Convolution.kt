@@ -122,16 +122,16 @@ private fun <T : Number> convolvePoint(
     var convolvedValue = 0.0F
     var usedWeights = 0.0F
     kernel.forEachIndexed { kernelX, kernelY, kernelValue ->
-        try {
-            val correspondingValue =
-                input[
-                    x + (kernelX - kernelCenter),
-                    y + (kernelY - kernelCenter),
-                ].toFloat()
-            convolvedValue += correspondingValue * kernelValue
-            usedWeights += kernelValue
-        } catch (_: Exception) {
-        }
+        val currX = x + (kernelX - kernelCenter)
+        val currY = y + (kernelY - kernelCenter)
+        val correspondingValue =
+            if (currX in 0 until input.width && currY in 0 until input.height) {
+                usedWeights += kernelValue
+                input.unsafeGet(currX, currY).toFloat()
+            } else {
+                0.0F
+            }
+        convolvedValue += correspondingValue * kernelValue
     }
 
     if (usedWeights != 0.0F) {
