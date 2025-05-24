@@ -1,8 +1,8 @@
 package app
 
 import boofcv.io.image.UtilImageIO
-import convolution.Kernel
 import convolution.convolve
+import kernels.motionBlur
 import java.io.File
 import javax.imageio.ImageIO
 
@@ -15,8 +15,7 @@ fun main(args: Array<String>) {
     val sourcePath = projectDir.resolve(args[0]).absoluteFile.toString()
     val image = UtilImageIO.loadImage(sourcePath)!!
 
-    val kernel =
-        Kernel(Array(9) { y -> FloatArray(9) { x -> 1 / 81F } })
+    val kernel = motionBlur(9)
     val start = System.currentTimeMillis()
     val convolved = convolve(image, kernel)
     val end = System.currentTimeMillis()
