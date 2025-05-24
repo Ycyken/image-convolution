@@ -12,7 +12,7 @@ class SimpleFilters {
         val input = GrayU8(Array(15) { ByteArray(15) { i -> i.toByte() } })
         val kernelId = id(3)
 
-        val convolved = runBlocking { input.convolve(kernelId) }
+        val convolved = runBlocking { input.convolve(kernelId, ConvMode.Sequential) }
         assertArrayEquals(
             input.data,
             convolved.data,
@@ -25,7 +25,7 @@ class SimpleFilters {
         val kernelId = Kernel(3)
         kernelId[2, 1] = 1F
 
-        val actual = runBlocking { input.convolve(kernelId) }
+        val actual = runBlocking { input.convolve(kernelId, ConvMode.Sequential) }
         val expected =
             GrayU8(Array(5) { ByteArray(5) { i -> if (i == 4) 0 else (i + 1).toByte() } })
         assertArrayEquals(
@@ -55,7 +55,7 @@ class SimpleFilters {
                 ),
             )
 
-        val actual = runBlocking { input.convolve(blurKernel) }
+        val actual = runBlocking { input.convolve(blurKernel, ConvMode.Sequential) }
         val expected =
             GrayU8(
                 arrayOf(

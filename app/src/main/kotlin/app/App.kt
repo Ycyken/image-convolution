@@ -1,6 +1,7 @@
 package app
 
 import boofcv.io.image.UtilImageIO
+import convolution.ConvMode
 import convolution.convolve
 import kernels.motionBlur
 import java.io.File
@@ -17,7 +18,7 @@ fun main(args: Array<String>) {
 
     val kernel = motionBlur(9)
     val start = System.currentTimeMillis()
-    val convolved = convolve(image, kernel)
+    val convolved = convolve(image, kernel, ConvMode.ParallelRows(1))
     val end = System.currentTimeMillis()
     println("Convolution took ${end - start} ms")
 

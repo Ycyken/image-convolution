@@ -3,7 +3,6 @@ package convolution
 import boofcv.io.image.ConvertBufferedImage
 import boofcv.struct.image.GrayU8
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.awt.image.BufferedImage
@@ -13,6 +12,18 @@ enum class ImageType {
     GRAY,
     RGB,
     UNKNOWN,
+}
+
+sealed class ConvMode {
+    data object Sequential : ConvMode()
+
+    data class ParallelRows(val batchSize: Int) : ConvMode()
+
+    data class ParallelCols(val batchSize: Int) : ConvMode()
+
+    data class ParallelRectangle(val width: Int, val height: Int) : ConvMode()
+
+    data object ParallelElems : ConvMode()
 }
 
 private fun detectImageType(image: BufferedImage): ImageType {
@@ -29,10 +40,11 @@ private fun detectImageType(image: BufferedImage): ImageType {
 fun convolve(
     input: BufferedImage,
     kernel: Kernel,
+    mode: ConvMode,
 ): BufferedImage {
     return when (detectImageType(input)) {
-        ImageType.GRAY -> convolveGray(input, kernel)
-        ImageType.RGB -> convolveRGB(input, kernel)
+        ImageType.GRAY -> convolveGray(input, kernel, mode)
+        ImageType.RGB -> convolveRGB(input, kernel, mode)
         ImageType.UNKNOWN -> throw IllegalArgumentException("Unsupported image type: ${input.colorModel}")
     }
 }
@@ -40,18 +52,17 @@ fun convolve(
 private fun convolveGray(
     image: BufferedImage,
     kernel: Kernel,
+    mode: ConvMode,
 ): BufferedImage {
     val gray = ConvertBufferedImage.convertFromSingle(image, null, GrayU8::class.java)
-    val convolved =
-        runBlocking {
-            gray.convolve(kernel)
-        }
+    val convolved = gray.convolve(kernel, mode)
     return ConvertBufferedImage.convertTo(convolved, null)
 }
 
 private fun convolveRGB(
     image: BufferedImage,
     kernel: Kernel,
+    mode: ConvMode,
 ): BufferedImage {
     val planar =
         ConvertBufferedImage.convertFromPlanar(
@@ -66,7 +77,7 @@ private fun convolveRGB(
             launch(Dispatchers.Default) {
                 convolved.setBand(
                     i,
-                    band.convolve(kernel),
+                    band.convolve(kernel, mode),
                 )
             }
         }
@@ -75,18 +86,27 @@ private fun convolveRGB(
     return ConvertBufferedImage.convertTo_U8(convolved, null, true)
 }
 
-internal suspend fun GrayU8.convolve(kernel: Kernel): GrayU8 {
+internal fun GrayU8.convolve(
+    kernel: Kernel,
+    mode: ConvMode,
+): GrayU8 {
     val input = MatrixAdapter(this)
     val output = MatrixAdapter(this.createSameShape())
     val transform = { x: Float -> x.roundToInt().coerceIn(0, 255) }
-    convolve(input, kernel, output, transform)
+    when (mode) {
+        is ConvMode.Sequential -> convolveSeq(input, kernel, output, transform)
+        is ConvMode.ParallelRows -> convolveParRows(input, kernel, output, transform)
+        is ConvMode.ParallelCols -> convolveParCols(input, kernel, output, transform)
+        is ConvMode.ParallelRectangle -> throw IllegalArgumentException("Rectangle convolution mode is not supported yet")
+        is ConvMode.ParallelElems -> convolveParElements(input, kernel, output, transform)
+    }
     return output.gray
 }
 
 internal fun Kernel.convolve(other: Kernel): Kernel {
     val output = Kernel(this.width)
     val transform = { x: Float -> x.coerceIn(0.0F, 255.0F) }
-    convolve(this, other, output, transform)
+    convolveSeq(this, other, output, transform)
     return output
 }
 
@@ -128,7 +148,7 @@ private fun <T> validateConvolutionArgs(
     require(input.width == output.width && input.height == output.height) { "Input matrix must be same size as output matrix" }
 }
 
-private fun <T : Number> convolve(
+private fun <T : Number> convolveSeq(
     input: ReadableMatrix<T>,
     kernel: Kernel,
     output: WritableMatrix<T>,
@@ -141,12 +161,12 @@ private fun <T : Number> convolve(
     }
 }
 
-private suspend fun <T : Number> convolveParRows(
+private fun <T : Number> convolveParRows(
     input: ReadableMatrix<T>,
     kernel: Kernel,
     output: WritableMatrix<T>,
     transform: (Float) -> T,
-) = coroutineScope {
+) = runBlocking {
     validateConvolutionArgs(input, output)
 
     for (y in 0 until input.height) {
@@ -158,12 +178,12 @@ private suspend fun <T : Number> convolveParRows(
     }
 }
 
-private suspend fun <T : Number> convolveParCols(
+private fun <T : Number> convolveParCols(
     input: ReadableMatrix<T>,
     kernel: Kernel,
     output: WritableMatrix<T>,
     transform: (Float) -> T,
-) = coroutineScope {
+) = runBlocking {
     validateConvolutionArgs(input, output)
 
     for (x in 0 until input.width) {
@@ -175,12 +195,12 @@ private suspend fun <T : Number> convolveParCols(
     }
 }
 
-private suspend fun <T : Number> convolveParElements(
+private fun <T : Number> convolveParElements(
     input: ReadableMatrix<T>,
     kernel: Kernel,
     output: WritableMatrix<T>,
     transform: (Float) -> T,
-) = coroutineScope {
+) = runBlocking {
     validateConvolutionArgs(input, output)
 
     input.forEachIndexed { x, y, _ ->
