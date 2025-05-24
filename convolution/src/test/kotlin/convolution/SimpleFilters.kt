@@ -1,6 +1,7 @@
 package convolution
 
 import boofcv.struct.image.GrayU8
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Test
 
@@ -11,7 +12,7 @@ class SimpleFilters {
         val kernelId = Kernel(3, 3)
         kernelId[1, 1] = 1F
 
-        val convolved = input.convolve(kernelId)
+        val convolved = runBlocking { input.convolve(kernelId) }
         assertArrayEquals(
             input.data,
             convolved.data,
@@ -24,7 +25,7 @@ class SimpleFilters {
         val kernelId = Kernel(3, 3)
         kernelId[2, 1] = 1F
 
-        val actual = input.convolve(kernelId)
+        val actual = runBlocking { input.convolve(kernelId) }
         val expected =
             GrayU8(Array(5) { ByteArray(5) { i -> if (i == 4) 0 else (i + 1).toByte() } })
         assertArrayEquals(
@@ -54,7 +55,7 @@ class SimpleFilters {
                 ),
             )
 
-        val actual = input.convolve(blurKernel)
+        val actual = runBlocking { input.convolve(blurKernel) }
         val expected =
             GrayU8(
                 arrayOf(
