@@ -17,7 +17,10 @@ fun main(args: Array<String>) {
 
     val kernel =
         Kernel(Array(9) { y -> FloatArray(9) { x -> 1 / 81F } })
+    val start = System.currentTimeMillis()
     val convolved = convolve(image, kernel)
+    val end = System.currentTimeMillis()
+    println("Convolution took ${end - start} ms")
 
     val outputFile = File(projectDir, "output_image")
     ImageIO.write(convolved, "bmp", outputFile)
