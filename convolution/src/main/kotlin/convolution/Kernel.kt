@@ -6,8 +6,8 @@ class Kernel private constructor(
     override val height: Int,
 ) : Matrix<Float> {
     init {
-        require(matrix.size == height) { "The matrix must be of the specified size" }
-        require(matrix.all { it.size == width }) { "The matrix must be of the specified size" }
+        require(width == height && width % 2 == 1) { "Kernel must be square of odd size" }
+        require(matrix.size == height && matrix.all { it.size == width }) { "Kernel must be of the specified size" }
     }
 
     constructor(matrix: Array<FloatArray>) : this(
@@ -16,10 +16,10 @@ class Kernel private constructor(
         matrix.size,
     )
 
-    constructor(width: Int, height: Int) : this(
-        Array(height) { FloatArray(width) },
-        width,
-        height,
+    constructor(size: Int) : this(
+        Array(size) { FloatArray(size) },
+        size,
+        size,
     )
 
     override operator fun get(

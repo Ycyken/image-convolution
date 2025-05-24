@@ -84,7 +84,7 @@ internal suspend fun GrayU8.convolve(kernel: Kernel): GrayU8 {
 }
 
 internal fun Kernel.convolve(other: Kernel): Kernel {
-    val output = Kernel(this.width, this.height)
+    val output = Kernel(this.width)
     val transform = { x: Float -> x.coerceIn(0.0F, 255.0F) }
     convolve(this, other, output, transform)
     return output
@@ -123,10 +123,8 @@ private fun <T : Number> convolvePoint(
 
 private fun <T> validateConvolutionArgs(
     input: ReadableMatrix<T>,
-    kernel: Kernel,
     output: WritableMatrix<T>,
 ) {
-    require(kernel.width % 2 == 1 && kernel.width == kernel.height) { "Kernel must be square matrix with odd size" }
     require(input.width == output.width && input.height == output.height) { "Input matrix must be same size as output matrix" }
 }
 
@@ -136,7 +134,7 @@ private fun <T : Number> convolve(
     output: WritableMatrix<T>,
     transform: (Float) -> T,
 ) {
-    validateConvolutionArgs(input, kernel, output)
+    validateConvolutionArgs(input, output)
 
     input.forEachIndexed { x, y, _ ->
         convolvePoint(input, kernel, output, transform, x, y)
@@ -149,7 +147,7 @@ private suspend fun <T : Number> convolveParRows(
     output: WritableMatrix<T>,
     transform: (Float) -> T,
 ) = coroutineScope {
-    validateConvolutionArgs(input, kernel, output)
+    validateConvolutionArgs(input, output)
 
     for (y in 0 until input.height) {
         launch(Dispatchers.Default) {
@@ -166,7 +164,7 @@ private suspend fun <T : Number> convolveParCols(
     output: WritableMatrix<T>,
     transform: (Float) -> T,
 ) = coroutineScope {
-    validateConvolutionArgs(input, kernel, output)
+    validateConvolutionArgs(input, output)
 
     for (x in 0 until input.width) {
         launch(Dispatchers.Default) {
@@ -183,7 +181,7 @@ private suspend fun <T : Number> convolveParElements(
     output: WritableMatrix<T>,
     transform: (Float) -> T,
 ) = coroutineScope {
-    validateConvolutionArgs(input, kernel, output)
+    validateConvolutionArgs(input, output)
 
     input.forEachIndexed { x, y, _ ->
         launch(Dispatchers.Default) {

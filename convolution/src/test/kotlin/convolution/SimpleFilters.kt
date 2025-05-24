@@ -9,7 +9,7 @@ class SimpleFilters {
     @Test
     fun `id filter doesn't change matrix`() {
         val input = GrayU8(Array(15) { ByteArray(15) { i -> i.toByte() } })
-        val kernelId = Kernel(3, 3)
+        val kernelId = Kernel(3)
         kernelId[1, 1] = 1F
 
         val convolved = runBlocking { input.convolve(kernelId) }
@@ -22,7 +22,7 @@ class SimpleFilters {
     @Test
     fun `shift filter is correct`() {
         val input = GrayU8(Array(5) { ByteArray(5) { i -> i.toByte() } })
-        val kernelId = Kernel(3, 3)
+        val kernelId = Kernel(3)
         kernelId[2, 1] = 1F
 
         val actual = runBlocking { input.convolve(kernelId) }
