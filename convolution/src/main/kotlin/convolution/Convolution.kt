@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.awt.image.BufferedImage
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 enum class ImageType {
@@ -95,8 +96,24 @@ internal fun GrayU8.convolve(
     val transform = { x: Float -> x.roundToInt().coerceIn(0, 255) }
     when (mode) {
         is ConvMode.Sequential -> convolveSeq(input, kernel, output, transform)
-        is ConvMode.ParallelRows -> convolveParRows(input, kernel, output, transform)
-        is ConvMode.ParallelCols -> convolveParCols(input, kernel, output, transform)
+        is ConvMode.ParallelRows ->
+            convolveParRows(
+                input,
+                kernel,
+                output,
+                transform,
+                mode.batchSize,
+            )
+
+        is ConvMode.ParallelCols ->
+            convolveParCols(
+                input,
+                kernel,
+                output,
+                transform,
+                mode.batchSize,
+            )
+
         is ConvMode.ParallelRectangle -> throw IllegalArgumentException("Rectangle convolution mode is not supported yet")
         is ConvMode.ParallelElems -> convolveParElements(input, kernel, output, transform)
     }
@@ -166,13 +183,19 @@ private fun <T : Number> convolveParRows(
     kernel: Kernel,
     output: WritableMatrix<T>,
     transform: (Float) -> T,
+    batchSize: Int,
 ) = runBlocking {
     validateConvolutionArgs(input, output)
 
-    for (y in 0 until input.height) {
+    val jobsNumber = (input.height + batchSize - 1) / batchSize
+    for (job in 0 until jobsNumber) {
+        val startY = job * batchSize
+        val endY = min(startY + batchSize, input.height)
         launch(Dispatchers.Default) {
-            for (x in 0 until input.width) {
-                convolvePoint(input, kernel, output, transform, x, y)
+            for (y in startY until endY) {
+                for (x in 0 until input.width) {
+                    convolvePoint(input, kernel, output, transform, x, y)
+                }
             }
         }
     }
@@ -183,13 +206,19 @@ private fun <T : Number> convolveParCols(
     kernel: Kernel,
     output: WritableMatrix<T>,
     transform: (Float) -> T,
+    batchSize: Int,
 ) = runBlocking {
     validateConvolutionArgs(input, output)
 
-    for (x in 0 until input.width) {
+    val jobsNumber = (input.width + batchSize - 1) / batchSize
+    for (job in 0 until jobsNumber) {
+        val startX = job * batchSize
+        val endX = min(startX + batchSize, input.width)
         launch(Dispatchers.Default) {
-            for (y in 0 until input.height) {
-                convolvePoint(input, kernel, output, transform, x, y)
+            for (x in startX until endX) {
+                for (y in 0 until input.height) {
+                    convolvePoint(input, kernel, output, transform, x, y)
+                }
             }
         }
     }
