@@ -1,12 +1,13 @@
 name: Build, Test, Lint
 
 on:
-  [push, pull_request]
+  [ push, pull_request ]
 
 jobs:
   build-test-lint:
     runs-on: ubuntu-latest
-
+    env:
+      _JAVA_OPTIONS: "-Xmx2g"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
