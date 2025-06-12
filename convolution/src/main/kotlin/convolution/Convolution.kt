@@ -114,7 +114,7 @@ internal fun GrayU8.convolve(
                 mode.batchSize,
             )
 
-        is ConvMode.ParallelRectangle -> throw IllegalArgumentException("Rectangle convolution mode is not supported yet")
+        is ConvMode.ParallelRectangle -> convolveParRects(input, kernel, output, transform, mode)
         is ConvMode.ParallelElems -> convolveParElements(input, kernel, output, transform)
     }
     return output.gray
@@ -218,6 +218,35 @@ private fun <T : Number> convolveParCols(
             for (x in startX until endX) {
                 for (y in 0 until input.height) {
                     convolvePoint(input, kernel, output, transform, x, y)
+                }
+            }
+        }
+    }
+}
+
+private fun <T : Number> convolveParRects(
+    input: ReadableMatrix<T>,
+    kernel: Kernel,
+    output: WritableMatrix<T>,
+    transform: (Float) -> T,
+    rect: ConvMode.ParallelRectangle,
+) = runBlocking {
+    validateConvolutionArgs(input, output)
+
+    val numRectsX = (input.width + rect.width - 1) / rect.width
+    val numRectsY = (input.height + rect.height - 1) / rect.height
+
+    for (rectY in 0 until numRectsY) {
+        for (rectX in 0 until numRectsX) {
+            val startX = rectX * rect.width
+            val endX = min(startX + rect.width, input.width)
+            val startY = rectY * rect.height
+            val endY = min(startY + rect.height, input.height)
+            launch(Dispatchers.Default) {
+                for (y in startY until endY) {
+                    for (x in startX until endX) {
+                        convolvePoint(input, kernel, output, transform, x, y)
+                    }
                 }
             }
         }

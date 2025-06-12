@@ -17,6 +17,8 @@ class ParallelConvolution {
                 ConvMode.ParallelCols(1),
                 ConvMode.ParallelCols(10),
                 ConvMode.ParallelCols(1000),
+                ConvMode.ParallelRectangle(1, 1),
+                ConvMode.ParallelRectangle(30, 30),
                 ConvMode.ParallelElems,
             )
     }
