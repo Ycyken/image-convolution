@@ -40,10 +40,8 @@ open class MyBenchmark {
 
     @Setup(Level.Trial)
     fun setup() {
-        val projectDir = File(System.getProperty("rootProjectDir"))
-        val sourcePath = projectDir.resolve("kha.bmp").absoluteFile.toString()
-        println(sourcePath)
-        image = UtilImageIO.loadImage(sourcePath)!!
+        val url = javaClass.classLoader.getResource("bird.png")
+        image = UtilImageIO.loadImage(url)!!
     }
 
     @Benchmark
