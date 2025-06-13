@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
-class ParallelConvolution {
+class TestParallelConvolution {
     companion object {
         @JvmStatic
         fun convolutionModes(): List<ConvMode> =
@@ -19,7 +19,7 @@ class ParallelConvolution {
                 ConvMode.ParallelCols(1000),
                 ConvMode.ParallelRectangle(1, 1),
                 ConvMode.ParallelRectangle(30, 30),
-                ConvMode.ParallelElems,
+                ConvMode.ParallelElems(),
             )
     }
 
@@ -29,9 +29,11 @@ class ParallelConvolution {
         val url = javaClass.classLoader.getResource("bird.png")
         val image = UtilImageIO.loadImage(url)!!
 
+        val convolutionPar = Convolution(convolutionMode)
+        val convolutionSeq = Convolution(ConvMode.Sequential())
         val kernel = boxBlur(21)
-        val convolvedPar = convolve(image, kernel, convolutionMode)
-        val convolvedSeq = convolve(image, kernel, ConvMode.Sequential)
+        val convolvedPar = convolutionPar.convolve(image, kernel)
+        val convolvedSeq = convolutionSeq.convolve(image, kernel)
 
         val actual = IntArray(convolvedPar.width * convolvedPar.height)
         val expected = IntArray(convolvedSeq.width * convolvedSeq.height)

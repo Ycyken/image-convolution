@@ -6,13 +6,15 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Test
 
-class SimpleFilters {
+class TestSequentialConvolution {
+    private val convolution = Convolution(ConvMode.Sequential())
+
     @Test
     fun `id filter doesn't change matrix`() {
         val input = GrayU8(Array(15) { ByteArray(15) { i -> i.toByte() } })
         val kernelId = id(3)
 
-        val convolved = runBlocking { input.convolve(kernelId, ConvMode.Sequential) }
+        val convolved = runBlocking { convolution.convolveBand(input, kernelId) }
         assertArrayEquals(
             input.data,
             convolved.data,
@@ -25,7 +27,7 @@ class SimpleFilters {
         val kernelId = Kernel(3)
         kernelId[2, 1] = 1F
 
-        val actual = runBlocking { input.convolve(kernelId, ConvMode.Sequential) }
+        val actual = runBlocking { convolution.convolveBand(input, kernelId) }
         val expected =
             GrayU8(Array(5) { ByteArray(5) { i -> if (i == 4) 0 else (i + 1).toByte() } })
         assertArrayEquals(
@@ -55,7 +57,7 @@ class SimpleFilters {
                 ),
             )
 
-        val actual = runBlocking { input.convolve(blurKernel, ConvMode.Sequential) }
+        val actual = runBlocking { convolution.convolveBand(input, blurKernel) }
         val expected =
             GrayU8(
                 arrayOf(

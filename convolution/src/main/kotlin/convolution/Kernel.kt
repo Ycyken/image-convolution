@@ -55,3 +55,10 @@ class Kernel private constructor(
         }
     }
 }
+
+internal fun Kernel.convolve(other: Kernel): Kernel {
+    val output = Kernel(this.width)
+    val transform = { x: Float -> x.coerceIn(0.0F, 255.0F) }
+    convolveSeq(this, other, output, transform)
+    return output
+}

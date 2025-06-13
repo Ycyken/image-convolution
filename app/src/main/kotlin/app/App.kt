@@ -2,7 +2,7 @@ package app
 
 import boofcv.io.image.UtilImageIO
 import convolution.ConvMode
-import convolution.convolve
+import convolution.Convolution
 import kernels.boxBlur
 import java.io.File
 import javax.imageio.ImageIO
@@ -17,7 +17,8 @@ fun main(args: Array<String>) {
     val image = UtilImageIO.loadImage(sourcePath)!!
 
     val kernel = boxBlur(21)
-    val convolved = convolve(image, kernel, ConvMode.ParallelRows(5))
+    val convolution = Convolution(ConvMode.ParallelRows(5, 16u))
+    val convolved = convolution.convolve(image, kernel)
 
     val outputFile = File(projectDir, "output_image")
     ImageIO.write(convolved, "bmp", outputFile)
