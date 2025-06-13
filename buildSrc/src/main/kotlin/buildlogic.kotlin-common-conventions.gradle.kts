@@ -23,4 +23,3 @@ java {
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
-
