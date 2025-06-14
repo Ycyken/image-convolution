@@ -7,9 +7,6 @@ build
 .idea
 .kotlin
 
-/*.bmp
-/*.jpg
-/*.png
 output_image
 output_images
 
