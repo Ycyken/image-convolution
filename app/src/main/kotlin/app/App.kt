@@ -3,29 +3,26 @@ package app
 import boofcv.io.image.UtilImageIO
 import convolution.ConvMode
 import convolution.Convolution
-import convolution.convolveBoofcv
 import kernels.*
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
-import kotlinx.cli.required
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import startPipeline
 import java.io.File
 import javax.imageio.ImageIO
-import kotlin.io.path.Path
 
-val filterMap = mapOf(
-    "id" to id(1),
-    "boxBlur" to boxBlur(13),
-    "motionBlur" to motionBlur(13),
-    "gaussianBlur3x3" to gaussianBlur3x3(),
-    "gaussianBlur5x5" to gaussianBlur5x5(),
-    "edges" to edges(),
-    "sharpen5" to sharpen5(),
-    "sharpen8" to sharpen8(),
-    "embos" to embos()
-)
+val filterMap =
+    mapOf(
+        "id" to id(1),
+        "boxBlur" to boxBlur(13),
+        "motionBlur" to motionBlur(13),
+        "gaussianBlur3x3" to gaussianBlur3x3(),
+        "gaussianBlur5x5" to gaussianBlur5x5(),
+        "edges" to edges(),
+        "sharpen5" to sharpen5(),
+        "sharpen8" to sharpen8(),
+        "embos" to embos(),
+    )
 
 fun main(args: Array<String>) {
     val parser = ArgParser("ImageFilterApp")
@@ -35,11 +32,12 @@ fun main(args: Array<String>) {
 
     parser.parse(args)
 
-    val filter = filterMap[filterName] ?: run {
-        println("Unsupported filter: $filterName")
-        println("Allowed filters: ${filterMap.keys.joinToString(", ")}")
-        return
-    }
+    val filter =
+        filterMap[filterName] ?: run {
+            println("Unsupported filter: $filterName")
+            println("Allowed filters: ${filterMap.keys.joinToString(", ")}")
+            return
+        }
 
     val projectDir = File(System.getProperty("rootProjectDir"))
     val targetFile = File(path)

@@ -14,89 +14,93 @@ class Convolution(private val mode: ConvMode) {
     suspend fun convolve(
         input: BufferedImage,
         kernel: Kernel,
-    ): BufferedImage = coroutineScope {
-        when (detectImageType(input)) {
-            ImageType.GRAY -> convolveGray(input, kernel)
-            ImageType.RGB -> convolveRGB(input, kernel)
-            ImageType.UNKNOWN -> throw IllegalArgumentException("Unsupported image type: ${input.colorModel}")
+    ): BufferedImage =
+        coroutineScope {
+            when (detectImageType(input)) {
+                ImageType.GRAY -> convolveGray(input, kernel)
+                ImageType.RGB -> convolveRGB(input, kernel)
+                ImageType.UNKNOWN -> throw IllegalArgumentException("Unsupported image type: ${input.colorModel}")
+            }
         }
-    }
 
     private suspend fun convolveGray(
         image: BufferedImage,
         kernel: Kernel,
-    ): BufferedImage = coroutineScope {
-        val gray = ConvertBufferedImage.convertFromSingle(image, null, GrayU8::class.java)
-        val convolved = convolveBand(gray, kernel)
-        ConvertBufferedImage.convertTo(convolved, null)
-    }
+    ): BufferedImage =
+        coroutineScope {
+            val gray = ConvertBufferedImage.convertFromSingle(image, null, GrayU8::class.java)
+            val convolved = convolveBand(gray, kernel)
+            ConvertBufferedImage.convertTo(convolved, null)
+        }
 
     private suspend fun convolveRGB(
         image: BufferedImage,
         kernel: Kernel,
-    ): BufferedImage = coroutineScope {
-        val planar =
-            ConvertBufferedImage.convertFromPlanar(
-                image,
-                null,
-                true,
-                GrayU8::class.java,
-            )
-        val convolved = planar.createSameShape()
-        runBlocking {
-            planar.bands.forEachIndexed { i, band ->
-                launch(dispatcher) {
-                    convolved.setBand(
-                        i,
-                        convolveBand(band, kernel),
-                    )
+    ): BufferedImage =
+        coroutineScope {
+            val planar =
+                ConvertBufferedImage.convertFromPlanar(
+                    image,
+                    null,
+                    true,
+                    GrayU8::class.java,
+                )
+            val convolved = planar.createSameShape()
+            runBlocking {
+                planar.bands.forEachIndexed { i, band ->
+                    launch(dispatcher) {
+                        convolved.setBand(
+                            i,
+                            convolveBand(band, kernel),
+                        )
+                    }
                 }
             }
-        }
 
-        ConvertBufferedImage.convertTo_U8(convolved, null, true)
-    }
+            ConvertBufferedImage.convertTo_U8(convolved, null, true)
+        }
 
     internal suspend fun convolveBand(
         gray: GrayU8,
         kernel: Kernel,
-    ): GrayU8 = coroutineScope {
-        val input = MatrixAdapter(gray)
-        val output = MatrixAdapter(gray.createSameShape())
-        val transform = { x: Float -> x.roundToInt().coerceIn(0, 255) }
-        when (mode) {
-            is ConvMode.Sequential -> convolveSeq(input, kernel, output, transform)
-            is ConvMode.ParallelRows ->
-                convolveParRows(
-                    input,
-                    kernel,
-                    output,
-                    transform,
-                    mode,
-                )
+    ): GrayU8 =
+        coroutineScope {
+            val input = MatrixAdapter(gray)
+            val output = MatrixAdapter(gray.createSameShape())
+            val transform = { x: Float -> x.roundToInt().coerceIn(0, 255) }
+            when (mode) {
+                is ConvMode.Sequential -> convolveSeq(input, kernel, output, transform)
+                is ConvMode.ParallelRows ->
+                    convolveParRows(
+                        input,
+                        kernel,
+                        output,
+                        transform,
+                        mode,
+                    )
 
-            is ConvMode.ParallelCols ->
-                convolveParCols(
-                    input,
-                    kernel,
-                    output,
-                    transform,
-                    mode,
-                )
+                is ConvMode.ParallelCols ->
+                    convolveParCols(
+                        input,
+                        kernel,
+                        output,
+                        transform,
+                        mode,
+                    )
 
-            is ConvMode.ParallelRectangle ->
-                convolveParRects(
-                    input,
-                    kernel,
-                    output,
-                    transform,
-                    mode,
-                )
+                is ConvMode.ParallelRectangle ->
+                    convolveParRects(
+                        input,
+                        kernel,
+                        output,
+                        transform,
+                        mode,
+                    )
 
-            is ConvMode.ParallelElems -> convolveParElements(input, kernel, output, transform)
+                is ConvMode.ParallelElems -> convolveParElements(input, kernel, output, transform)
+            }
+            output.gray
         }
-        output.gray
-    }
 
     private suspend fun <T : Number> convolveParRows(
         input: ReadableMatrix<T>,

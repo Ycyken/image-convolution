@@ -1,7 +1,6 @@
 package bench
 
 import app.startSeqPipeline
-import boofcv.io.image.UtilImageIO
 import convolution.ConvMode
 import convolution.Convolution
 import kernels.boxBlur
@@ -10,7 +9,6 @@ import org.openjdk.jmh.results.format.ResultFormatType
 import org.openjdk.jmh.runner.Runner
 import org.openjdk.jmh.runner.options.OptionsBuilder
 import startPipeline
-import java.awt.image.BufferedImage
 import java.io.File
 import java.util.concurrent.TimeUnit
 

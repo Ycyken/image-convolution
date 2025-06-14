@@ -10,26 +10,28 @@ import javax.imageio.ImageIO
 
 data class NamedImage(val name: String, val img: BufferedImage)
 
-fun imagesFlow(dir: File): Flow<NamedImage> = flow {
-    dir.listFiles { f -> Files.isRegularFile(f.toPath()) }?.forEach { file ->
-        println("Start read image ${file.name}")
-        val img = UtilImageIO.loadImage(file.absolutePath) ?: error("Can't load image: $file")
-        emit(NamedImage(file.name, img))
-        println("Successfully read image ${file.name}")
-    }
-}.flowOn(Dispatchers.IO)
+fun imagesFlow(dir: File): Flow<NamedImage> =
+    flow {
+        dir.listFiles { f -> Files.isRegularFile(f.toPath()) }?.forEach { file ->
+            println("Start read image ${file.name}")
+            val img = UtilImageIO.loadImage(file.absolutePath) ?: error("Can't load image: $file")
+            emit(NamedImage(file.name, img))
+            println("Successfully read image ${file.name}")
+        }
+    }.flowOn(Dispatchers.IO)
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun Flow<NamedImage>.convolve(
     convolution: Convolution,
-    kernel: Kernel
+    kernel: Kernel,
 ): Flow<NamedImage> =
     this.flatMapMerge(4) { namedImg ->
         flow {
             println("Start convolve image ${namedImg.name}")
-            val result = withContext(Dispatchers.Default) {
-                convolution.convolve(namedImg.img, kernel)
-            }
+            val result =
+                withContext(Dispatchers.Default) {
+                    convolution.convolve(namedImg.img, kernel)
+                }
             emit(NamedImage(namedImg.name, result))
             println("Successfully convolved image ${namedImg.name}")
         }
@@ -46,7 +48,7 @@ fun Flow<NamedImage>.saveTo(outputDir: File) =
 fun startPipeline(
     inputDir: File,
     convolution: Convolution,
-    kernel: Kernel
+    kernel: Kernel,
 ) = runBlocking {
     val projectDir = File(System.getProperty("rootProjectDir"))
     val outputDir = File(projectDir, "output_images")

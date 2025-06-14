@@ -11,7 +11,7 @@ import javax.imageio.ImageIO
 fun startSeqPipeline(
     inputDir: File,
     convolution: Convolution,
-    kernel: Kernel
+    kernel: Kernel,
 ) {
     val projectDir = File(System.getProperty("rootProjectDir"))
     val outputDir = File(projectDir, "output_images")
@@ -19,9 +19,10 @@ fun startSeqPipeline(
 
     inputDir.listFiles { f -> Files.isRegularFile(f.toPath()) }?.forEach { file ->
         val img = UtilImageIO.loadImage(file.absolutePath) ?: error("Can't load image: $file")
-        val convolved = runBlocking {
-            convolution.convolve(img, kernel)
-        }
+        val convolved =
+            runBlocking {
+                convolution.convolve(img, kernel)
+            }
         val out = File(outputDir, file.name)
         ImageIO.write(convolved, "png", out)
     }
