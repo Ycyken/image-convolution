@@ -28,7 +28,7 @@ p = p.reindex(modes_order)
 x = np.arange(len(p))
 w = 0.35
 
-plt.bar(x - w / 2, p.iloc[:, 0], w, label='parallel pipeline')
+plt.bar(x - w / 2, p.iloc[:, 0], w, label='asynchronous pipeline')
 plt.bar(x + w / 2, p.iloc[:, 1], w, label='sequential pipeline')
 plt.xticks(x, p.index, rotation=45, ha='right')
 plt.ylabel('Time, seconds')
