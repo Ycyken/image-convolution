@@ -7,6 +7,7 @@ dependencies {
     implementation(project(":convolution"))
     jmh("org.openjdk.jmh:jmh-core:1.37")
     jmh("org.openjdk.jmh:jmh-generator-annprocess:1.37")
+    implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
 }
 
 application {
