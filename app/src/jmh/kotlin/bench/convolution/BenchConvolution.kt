@@ -54,13 +54,13 @@ open class BenchConvolution {
 }
 
 fun main() {
-    val outFile = "build/results/jmh/convolution_results.csv"
+    val outFile = "build/results/jmh/convolution_results.json"
     File(outFile).parentFile.mkdirs()
     val opts =
         OptionsBuilder()
             .include(BenchConvolution::class.java.simpleName)
             .result(outFile)
-            .resultFormat(ResultFormatType.CSV)
+            .resultFormat(ResultFormatType.JSON)
             .build()
 
     Runner(opts).run()

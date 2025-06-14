@@ -1,17 +1,28 @@
+import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-df = pd.read_csv('app/build/results/jmh/pipeline_results.csv')
-df = df[df['Benchmark'].isin([
-    'bench.pipeline.BenchPipeline.parallelPipeline',
-    'bench.pipeline.BenchPipeline.seqPipeline'
-])][['Param: mode', 'Benchmark', 'Score']]
+with open('app/build/results/jmh/pipeline_results.json') as f:
+    data = json.load(f)
 
-modes_order = df['Param: mode'].drop_duplicates().tolist()
+records = []
+for b in data:
+    if b['benchmark'] in [
+        'bench.pipeline.BenchPipeline.parallelPipeline',
+        'bench.pipeline.BenchPipeline.seqPipeline'
+    ]:
+        records.append({
+            'mode': b['params']['mode'],
+            'benchmark': b['benchmark'],
+            'score': b['primaryMetric']['score']
+        })
 
-p = df.pivot(index='Param: mode', columns='Benchmark', values='Score')
+df = pd.DataFrame(records)
 
+modes_order = df['mode'].drop_duplicates().tolist()
+
+p = df.pivot(index='mode', columns='benchmark', values='score')
 p = p.reindex(modes_order)
 
 x = np.arange(len(p))

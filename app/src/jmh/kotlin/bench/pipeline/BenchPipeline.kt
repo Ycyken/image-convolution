@@ -23,7 +23,7 @@ enum class ConvolutionMode(val make: () -> ConvMode) {
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 3)
-@Measurement(iterations = 20)
+@Measurement(iterations = 10)
 @Fork(1)
 open class BenchPipeline {
     @Param
@@ -52,13 +52,13 @@ open class BenchPipeline {
 }
 
 fun main() {
-    val outFile = "build/results/jmh/pipeline_results.csv"
+    val outFile = "build/results/jmh/pipeline_results.json"
     File(outFile).parentFile.mkdirs()
     val opts =
         OptionsBuilder()
             .include(BenchPipeline::class.java.simpleName)
             .result(outFile)
-            .resultFormat(ResultFormatType.CSV)
+            .resultFormat(ResultFormatType.JSON)
             .build()
 
     Runner(opts).run()

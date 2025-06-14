@@ -1,9 +1,21 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 
-df = pd.read_csv('app/build/results/jmh/convolution_results.csv')
-df.rename(columns={'Param: imageName': 'img', 'Param: mode': 'mode', 'Score': 'score'}, inplace=True)
+with open('app/build/results/jmh/convolution_results.json') as f:
+    data = json.load(f)
+
+records = []
+for bench in data:
+    params = bench['params']
+    records.append({
+        'img': params['imageName'],
+        'mode': params['mode'],
+        'score': bench['primaryMetric']['score']
+    })
+
+df = pd.DataFrame(records)
 
 df['img'] = df['img'].map({
     'bird.png': '1280x853',
