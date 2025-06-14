@@ -1,28 +1,37 @@
-package bench
+package bench.pipeline
 
 import app.startSeqPipeline
 import convolution.ConvMode
-import convolution.Convolution
 import kernels.boxBlur
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.results.format.ResultFormatType
 import org.openjdk.jmh.runner.Runner
 import org.openjdk.jmh.runner.options.OptionsBuilder
-import startPipeline
+import startAsyncPipeline
 import java.io.File
 import java.util.concurrent.TimeUnit
+
+enum class ConvolutionMode(val make: () -> ConvMode) {
+    FullSeq({ ConvMode.Sequential(1u) }),
+    ConvSeq({ ConvMode.Sequential(3u) }),
+    ParallelCols5({ ConvMode.ParallelCols(5) }),
+    ParallelRows1({ ConvMode.ParallelRows(5) }),
+    ParallelRect5x5({ ConvMode.ParallelRectangle(50, 50) }),
+}
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 3)
-@Measurement(iterations = 5)
+@Warmup(iterations = 0)
+@Measurement(iterations = 1)
 @Fork(1)
 open class BenchPipeline {
+    @Param
+    lateinit var mode: ConvolutionMode
+
     @Param("images_links")
     lateinit var dirName: String
     private val kernel = boxBlur(13)
-    private val convolution = Convolution(ConvMode.ParallelRows(5))
     private lateinit var inputDir: File
 
     @Setup(Level.Trial)
@@ -33,12 +42,12 @@ open class BenchPipeline {
 
     @Benchmark
     fun parallelPipeline() {
-        startPipeline(inputDir, convolution, kernel)
+        startAsyncPipeline(inputDir, mode.make(), kernel)
     }
 
     @Benchmark
     fun seqPipeline() {
-        startSeqPipeline(inputDir, convolution, kernel)
+        startSeqPipeline(inputDir, mode.make(), kernel)
     }
 }
 

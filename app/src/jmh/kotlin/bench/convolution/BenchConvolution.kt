@@ -1,4 +1,4 @@
-package bench
+package bench.convolution
 
 import boofcv.io.image.UtilImageIO
 import convolution.ConvMode
@@ -13,9 +13,9 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.util.concurrent.TimeUnit
 
-enum class ParallelMode(val make: () -> ConvMode) {
-    ParallelFullSeq({ ConvMode.Sequential(1u) }),
-    ParallelConSeq({ ConvMode.Sequential(3u) }),
+enum class ConvolutionMode(val make: () -> ConvMode) {
+    FullSeq({ ConvMode.Sequential(1u) }),
+    ConvSeq({ ConvMode.Sequential(3u) }),
     ParallelCols5({ ConvMode.ParallelCols(5) }),
     ParallelRows1({ ConvMode.ParallelRows(5) }),
     ParallelRect5x5({ ConvMode.ParallelRectangle(50, 50) }),
@@ -29,7 +29,7 @@ enum class ParallelMode(val make: () -> ConvMode) {
 @Fork(1)
 open class BenchConvolution {
     @Param
-    lateinit var mode: ParallelMode
+    lateinit var mode: ConvolutionMode
 
     @Param("bird.png", "kha.bmp")
     lateinit var imageName: String
@@ -39,9 +39,9 @@ open class BenchConvolution {
 
     @Setup(Level.Trial)
     fun setup() {
+        convolution = Convolution(mode.make())
         val url = javaClass.classLoader.getResource("all_images/${imageName}")
         image = UtilImageIO.loadImage(url)!!
-        convolution = Convolution(mode.make())
     }
 
     @Benchmark

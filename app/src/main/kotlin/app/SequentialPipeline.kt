@@ -1,6 +1,7 @@
 package app
 
 import boofcv.io.image.UtilImageIO
+import convolution.ConvMode
 import convolution.Convolution
 import convolution.Kernel
 import kotlinx.coroutines.runBlocking
@@ -10,12 +11,13 @@ import javax.imageio.ImageIO
 
 fun startSeqPipeline(
     inputDir: File,
-    convolution: Convolution,
+    mode: ConvMode,
     kernel: Kernel,
 ) {
     val projectDir = File(System.getProperty("rootProjectDir"))
     val outputDir = File(projectDir, "output_images")
     if (!outputDir.exists()) outputDir.mkdirs()
+    val convolution = Convolution(mode)
 
     inputDir.listFiles { f -> Files.isRegularFile(f.toPath()) }?.forEach { file ->
         val img = UtilImageIO.loadImage(file.absolutePath) ?: error("Can't load image: $file")

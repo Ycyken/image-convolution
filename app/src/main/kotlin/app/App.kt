@@ -7,7 +7,7 @@ import kernels.*
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.coroutines.runBlocking
-import startPipeline
+import startAsyncPipeline
 import java.io.File
 import javax.imageio.ImageIO
 
@@ -48,14 +48,15 @@ fun main(args: Array<String>) {
         return
     }
 
-    val convolution = Convolution(ConvMode.ParallelRows(5))
+    val convMode = ConvMode.ParallelRows(5)
     if (file.isFile) {
+        val convolution = Convolution(convMode)
         val image = UtilImageIO.loadImage(file.absolutePath)!!
         val convolved = runBlocking { convolution.convolve(image, filter) }
         val outputFile = File(projectDir, "output_image")
         ImageIO.write(convolved, "bmp", outputFile)
     } else if (file.isDirectory) {
-        startPipeline(file, convolution, filter)
+        startAsyncPipeline(file, convMode, filter)
     } else {
         println("Invalid path: $path is neither file nor directory")
     }

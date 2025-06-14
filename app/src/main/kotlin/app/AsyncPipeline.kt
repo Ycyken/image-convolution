@@ -1,4 +1,5 @@
 import boofcv.io.image.UtilImageIO
+import convolution.ConvMode
 import convolution.Convolution
 import convolution.Kernel
 import kotlinx.coroutines.*
@@ -22,12 +23,13 @@ fun imagesFlow(dir: File): Flow<NamedImage> =
 
 @OptIn(ExperimentalCoroutinesApi::class)
 fun Flow<NamedImage>.convolve(
-    convolution: Convolution,
+    mode: ConvMode,
     kernel: Kernel,
 ): Flow<NamedImage> =
-    this.flatMapMerge(4) { namedImg ->
+    this.flatMapMerge(8) { namedImg ->
         flow {
             println("Start convolve image ${namedImg.name}")
+            val convolution = Convolution(mode)
             val result =
                 withContext(Dispatchers.Default) {
                     convolution.convolve(namedImg.img, kernel)
@@ -45,9 +47,9 @@ fun Flow<NamedImage>.saveTo(outputDir: File) =
         println("Successfully saved image ${namedImg.name}")
     }.flowOn(Dispatchers.IO)
 
-fun startPipeline(
+fun startAsyncPipeline(
     inputDir: File,
-    convolution: Convolution,
+    mode: ConvMode,
     kernel: Kernel,
 ) = runBlocking {
     val projectDir = File(System.getProperty("rootProjectDir"))
@@ -56,6 +58,6 @@ fun startPipeline(
 
     imagesFlow(inputDir)
         .buffer(10)
-        .convolve(convolution, kernel)
+        .convolve(mode, kernel)
         .saveTo(outputDir).collect()
 }
