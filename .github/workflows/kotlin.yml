@@ -7,7 +7,7 @@ jobs:
   build-test-lint:
     runs-on: ubuntu-latest
     env:
-      _JAVA_OPTIONS: "-Xmx2g"
+      _JAVA_OPTIONS: "-Xmx4g"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
