@@ -46,7 +46,7 @@ open class BenchConvolution {
     @Setup(Level.Trial)
     fun setup() {
         convolution = Convolution(mode.make())
-        val url = javaClass.classLoader.getResource("all_images/${imageName}")
+        val url = javaClass.classLoader.getResource("all_images/$imageName")
         image = UtilImageIO.loadImage(url)!!
     }
 

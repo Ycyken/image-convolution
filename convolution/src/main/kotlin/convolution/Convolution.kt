@@ -46,14 +46,16 @@ class Convolution(private val mode: ConvMode) {
                     GrayU8::class.java,
                 )
             val convolved = planar.createSameShape()
-            planar.bands.forEachIndexed { i, band ->
-                launch(dispatcher) {
-                    convolved.setBand(
-                        i,
-                        convolveBand(band, kernel),
-                    )
+            val jobs =
+                planar.bands.mapIndexed { i, band ->
+                    launch(dispatcher) {
+                        convolved.setBand(
+                            i,
+                            convolveBand(band, kernel),
+                        )
+                    }
                 }
-            }
+            jobs.joinAll()
 
             ConvertBufferedImage.convertTo_U8(convolved, null, true)
         }
