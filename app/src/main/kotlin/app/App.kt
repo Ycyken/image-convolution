@@ -15,8 +15,8 @@ import kotlin.io.path.Path
 
 val filterMap = mapOf(
     "id" to id(1),
-    "boxBlur" to boxBlur(9),
-    "motionBlur" to motionBlur(9),
+    "boxBlur" to boxBlur(13),
+    "motionBlur" to motionBlur(13),
     "gaussianBlur3x3" to gaussianBlur3x3(),
     "gaussianBlur5x5" to gaussianBlur5x5(),
     "edges" to edges(),
