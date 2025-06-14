@@ -1,6 +1,7 @@
 package convolution
 
 import boofcv.io.image.UtilImageIO
+import kotlinx.coroutines.runBlocking
 import java.awt.image.BufferedImage
 import kotlin.math.abs
 
@@ -50,7 +51,7 @@ fun assertConvolutions(
     tolerance: Int = 1,
 ) {
     val convolution = Convolution(ConvMode.Sequential())
-    val convolved1 = convolution1.convolve(image, kernel)
+    val convolved1 = runBlocking { convolution1.convolve(image, kernel) }
     val convolved2 = convolve2(image, kernel)
     assertImgEquals(convolved1, convolved2, tolerance)
 }

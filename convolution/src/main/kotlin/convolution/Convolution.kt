@@ -11,30 +11,30 @@ class Convolution(private val mode: ConvMode) {
     private val dispatcher: CoroutineDispatcher =
         if (mode.thrs == 0u) Dispatchers.Default else Dispatchers.Default.limitedParallelism(mode.thrs.toInt())
 
-    fun convolve(
+    suspend fun convolve(
         input: BufferedImage,
         kernel: Kernel,
-    ): BufferedImage {
-        return when (detectImageType(input)) {
+    ): BufferedImage = coroutineScope {
+        when (detectImageType(input)) {
             ImageType.GRAY -> convolveGray(input, kernel)
             ImageType.RGB -> convolveRGB(input, kernel)
             ImageType.UNKNOWN -> throw IllegalArgumentException("Unsupported image type: ${input.colorModel}")
         }
     }
 
-    private fun convolveGray(
+    private suspend fun convolveGray(
         image: BufferedImage,
         kernel: Kernel,
-    ): BufferedImage {
+    ): BufferedImage = coroutineScope {
         val gray = ConvertBufferedImage.convertFromSingle(image, null, GrayU8::class.java)
         val convolved = convolveBand(gray, kernel)
-        return ConvertBufferedImage.convertTo(convolved, null)
+        ConvertBufferedImage.convertTo(convolved, null)
     }
 
-    private fun convolveRGB(
+    private suspend fun convolveRGB(
         image: BufferedImage,
         kernel: Kernel,
-    ): BufferedImage {
+    ): BufferedImage = coroutineScope {
         val planar =
             ConvertBufferedImage.convertFromPlanar(
                 image,
@@ -54,13 +54,13 @@ class Convolution(private val mode: ConvMode) {
             }
         }
 
-        return ConvertBufferedImage.convertTo_U8(convolved, null, true)
+        ConvertBufferedImage.convertTo_U8(convolved, null, true)
     }
 
-    internal fun convolveBand(
+    internal suspend fun convolveBand(
         gray: GrayU8,
         kernel: Kernel,
-    ): GrayU8 {
+    ): GrayU8 = coroutineScope {
         val input = MatrixAdapter(gray)
         val output = MatrixAdapter(gray.createSameShape())
         val transform = { x: Float -> x.roundToInt().coerceIn(0, 255) }
@@ -95,16 +95,16 @@ class Convolution(private val mode: ConvMode) {
 
             is ConvMode.ParallelElems -> convolveParElements(input, kernel, output, transform)
         }
-        return output.gray
+        output.gray
     }
 
-    private fun <T : Number> convolveParRows(
+    private suspend fun <T : Number> convolveParRows(
         input: ReadableMatrix<T>,
         kernel: Kernel,
         output: WritableMatrix<T>,
         transform: (Float) -> T,
         mode: ConvMode.ParallelRows,
-    ) = runBlocking {
+    ) = coroutineScope {
         validateConvolutionArgs(input, output)
 
         val batchSize = mode.batchSize
@@ -123,13 +123,13 @@ class Convolution(private val mode: ConvMode) {
         }
     }
 
-    private fun <T : Number> convolveParCols(
+    private suspend fun <T : Number> convolveParCols(
         input: ReadableMatrix<T>,
         kernel: Kernel,
         output: WritableMatrix<T>,
         transform: (Float) -> T,
         mode: ConvMode.ParallelCols,
-    ) = runBlocking {
+    ) = coroutineScope {
         validateConvolutionArgs(input, output)
 
         val batchSize = mode.batchSize
@@ -148,13 +148,13 @@ class Convolution(private val mode: ConvMode) {
         }
     }
 
-    private fun <T : Number> convolveParRects(
+    private suspend fun <T : Number> convolveParRects(
         input: ReadableMatrix<T>,
         kernel: Kernel,
         output: WritableMatrix<T>,
         transform: (Float) -> T,
         mode: ConvMode.ParallelRectangle,
-    ) = runBlocking {
+    ) = coroutineScope {
         validateConvolutionArgs(input, output)
 
         val numRectsX = (input.width + mode.width - 1) / mode.width
@@ -177,12 +177,12 @@ class Convolution(private val mode: ConvMode) {
         }
     }
 
-    private fun <T : Number> convolveParElements(
+    private suspend fun <T : Number> convolveParElements(
         input: ReadableMatrix<T>,
         kernel: Kernel,
         output: WritableMatrix<T>,
         transform: (Float) -> T,
-    ) = runBlocking {
+    ) = coroutineScope {
         validateConvolutionArgs(input, output)
 
         input.forEachIndexed { x, y, _ ->

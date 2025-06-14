@@ -4,6 +4,7 @@ import boofcv.io.image.UtilImageIO
 import convolution.ConvMode
 import convolution.Convolution
 import kernels.boxBlur
+import kotlinx.coroutines.runBlocking
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.results.format.ResultFormatType
 import org.openjdk.jmh.runner.Runner
@@ -42,7 +43,7 @@ open class BenchConvolution {
 
     @Benchmark
     fun convolutionBench() {
-        val convolved = convolution.convolve(image, kernel)
+        val convolved = runBlocking { convolution.convolve(image, kernel) }
         return
     }
 }

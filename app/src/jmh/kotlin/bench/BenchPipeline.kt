@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 @Measurement(iterations = 5)
 @Fork(1)
 open class BenchPipeline {
-    @Param("small_images_pack", "big_images_pack")
+    @Param("images_links")
     lateinit var dirName: String
     private val kernel = boxBlur(13)
     private val convolution = Convolution(ConvMode.ParallelRows(5))

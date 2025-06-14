@@ -1,6 +1,7 @@
 package convolution
 
 import kernels.*
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -106,8 +107,8 @@ class TestConvolution {
         val box = boxBlur(realSize)
 
         val convolution = Convolution(mode)
-        val convolvedBoxZeros = convolution.convolve(image, boxZeros)
-        val convolvedBox = convolution.convolve(image, box)
+        val convolvedBoxZeros = runBlocking { convolution.convolve(image, boxZeros) }
+        val convolvedBox = runBlocking { convolution.convolve(image, box) }
 
         assertImgEquals(convolvedBox, convolvedBoxZeros)
     }
