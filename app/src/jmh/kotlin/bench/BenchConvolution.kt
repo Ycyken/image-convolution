@@ -24,19 +24,22 @@ enum class ParallelMode(val make: () -> ConvMode) {
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-@Warmup(iterations = 3)
-@Measurement(iterations = 5)
+@Warmup(iterations = 0)
+@Measurement(iterations = 2)
 @Fork(1)
 open class BenchConvolution {
     @Param
     lateinit var mode: ParallelMode
+
+    @Param("bird.png", "kha.bmp")
+    lateinit var imageName: String
     private val kernel = boxBlur(13)
     private lateinit var image: BufferedImage
     private lateinit var convolution: Convolution
 
     @Setup(Level.Trial)
     fun setup() {
-        val url = javaClass.classLoader.getResource("all_images/kha.bmp")
+        val url = javaClass.classLoader.getResource("all_images/${imageName}")
         image = UtilImageIO.loadImage(url)!!
         convolution = Convolution(mode.make())
     }
