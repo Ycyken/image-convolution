@@ -16,8 +16,12 @@ import java.util.concurrent.TimeUnit
 enum class ConvolutionMode(val make: () -> ConvMode) {
     FullSeq({ ConvMode.Sequential(1u) }),
     ParallelChannels({ ConvMode.Sequential(3u) }),
+    ParallelCols1({ ConvMode.ParallelCols(1) }),
+    ParallelRows1({ ConvMode.ParallelRows(1) }),
     ParallelCols5({ ConvMode.ParallelCols(5) }),
     ParallelRows5({ ConvMode.ParallelRows(5) }),
+    ParallelCols100({ ConvMode.ParallelCols(100) }),
+    ParallelRows100({ ConvMode.ParallelRows(100) }),
     ParallelRect5x5({ ConvMode.ParallelRectangle(5, 5) }),
     ParallelRect50x50({ ConvMode.ParallelRectangle(50, 50) }),
     ParallelElems({ ConvMode.ParallelElems() }),
