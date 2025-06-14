@@ -6,7 +6,7 @@ import kotlin.math.abs
 
 fun getImgResource(name: String): BufferedImage {
     val url =
-        TestConvolution::class.java.classLoader.getResource(name)?.file
+        TestConvolution::class.java.classLoader.getResource("all_images/$name")?.file
             ?: error("Cannot load image $name")
     return UtilImageIO.loadImage(url) ?: error("Cannot load image $name")
 }

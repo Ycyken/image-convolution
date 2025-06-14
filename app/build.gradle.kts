@@ -17,3 +17,17 @@ application {
 jmh {
     jvmArgs = listOf("-DrootProjectDir=${rootProject.projectDir.absolutePath}")
 }
+
+tasks.register<JavaExec>("jmhConv") {
+    group = "benchmark"
+    description = "Run JMH convolution benchmark"
+    classpath = files(tasks.named("jmhJar"))
+    mainClass.set("bench.BenchConvolutionKt")
+}
+
+tasks.register<JavaExec>("jmhPipe") {
+    group = "benchmark"
+    description = "Run JMH pipeline benchmark"
+    classpath = files(tasks.named("jmhJar"))
+    mainClass.set("bench.BenchPipelineKt")
+}

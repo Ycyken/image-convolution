@@ -5,13 +5,14 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.awt.image.BufferedImage
 import java.io.File
+import java.nio.file.Files
 import javax.imageio.ImageIO
 
 data class NamedImage(val name: String, val img: BufferedImage)
 
 fun imagesFlow(dir: File): Flow<NamedImage> = flow {
-    dir.listFiles { x -> x.isFile }?.forEach { file ->
-        println("read image: ${file.name}")
+    dir.listFiles { f -> Files.isRegularFile(f.toPath()) }?.forEach { file ->
+        println("Reading image: ${file.name}")
         val img = UtilImageIO.loadImage(file.absolutePath) ?: error("Can't load image: $file")
         emit(NamedImage(file.name, img))
     }
@@ -24,7 +25,7 @@ fun Flow<NamedImage>.convolve(
 ): Flow<NamedImage> =
     this.flatMapMerge(concurrency = 4) { namedImg ->
         flow {
-            println("convolve")
+            println("Convolving image: ${namedImg.name}")
             val result = withContext(Dispatchers.Default) {
                 convolution.convolve(namedImg.img, kernel)
             }
@@ -34,9 +35,9 @@ fun Flow<NamedImage>.convolve(
 
 fun Flow<NamedImage>.saveTo(outputDir: File) =
     this.map { namedImg ->
+        println("Saving image: ${namedImg.name}")
         val out = File(outputDir, namedImg.name)
         ImageIO.write(namedImg.img, "png", out)
-        println("Saved: ${out.name}")
     }.flowOn(Dispatchers.IO)
 
 fun startPipeline(

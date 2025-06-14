@@ -9,6 +9,7 @@ import org.openjdk.jmh.results.format.ResultFormatType
 import org.openjdk.jmh.runner.Runner
 import org.openjdk.jmh.runner.options.OptionsBuilder
 import java.awt.image.BufferedImage
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 enum class ParallelMode(val make: () -> ConvMode) {
@@ -25,16 +26,16 @@ enum class ParallelMode(val make: () -> ConvMode) {
 @Warmup(iterations = 3)
 @Measurement(iterations = 5)
 @Fork(1)
-open class MyBenchmark {
+open class BenchConvolution {
     @Param
     lateinit var mode: ParallelMode
-    private val kernel = boxBlur(21)
+    private val kernel = boxBlur(13)
     private lateinit var image: BufferedImage
     private lateinit var convolution: Convolution
 
     @Setup(Level.Trial)
     fun setup() {
-        val url = javaClass.classLoader.getResource("kha.bmp")
+        val url = javaClass.classLoader.getResource("all_images/kha.bmp")
         image = UtilImageIO.loadImage(url)!!
         convolution = Convolution(mode.make())
     }
@@ -47,14 +48,15 @@ open class MyBenchmark {
 }
 
 fun main() {
+    val outFile = "build/results/jmh/convolution_results.csv"
+    File(outFile).parentFile.mkdirs()
     val opts =
         OptionsBuilder()
-            .include(MyBenchmark::class.java.simpleName)
-            .mode(Mode.AverageTime)
-            .result("benchmark_results.csv")
+            .include(BenchConvolution::class.java.simpleName)
+            .result(outFile)
             .resultFormat(ResultFormatType.CSV)
             .build()
 
     Runner(opts).run()
-    println("Results written to benchmark_results.csv")
+    println("Results written to $outFile")
 }
