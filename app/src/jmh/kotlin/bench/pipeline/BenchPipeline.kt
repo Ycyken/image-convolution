@@ -22,8 +22,8 @@ enum class ConvolutionMode(val make: () -> ConvMode) {
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 3)
-@Measurement(iterations = 10)
+@Warmup(iterations = 2)
+@Measurement(iterations = 7)
 @Fork(1)
 open class BenchPipeline {
     @Param
