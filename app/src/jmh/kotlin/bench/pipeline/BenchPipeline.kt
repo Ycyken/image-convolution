@@ -13,17 +13,17 @@ import java.util.concurrent.TimeUnit
 
 enum class ConvolutionMode(val make: () -> ConvMode) {
     FullSeq({ ConvMode.Sequential(1u) }),
-    ConvSeq({ ConvMode.Sequential(3u) }),
+    ParallelChannels({ ConvMode.Sequential(3u) }),
     ParallelCols5({ ConvMode.ParallelCols(5) }),
-    ParallelRows1({ ConvMode.ParallelRows(5) }),
-    ParallelRect5x5({ ConvMode.ParallelRectangle(50, 50) }),
+    ParallelRows5({ ConvMode.ParallelRows(5) }),
+    ParallelRect50x50({ ConvMode.ParallelRectangle(50, 50) }),
 }
 
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.SECONDS)
-@Warmup(iterations = 0)
-@Measurement(iterations = 1)
+@Warmup(iterations = 3)
+@Measurement(iterations = 20)
 @Fork(1)
 open class BenchPipeline {
     @Param
