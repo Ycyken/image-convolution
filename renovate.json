@@ -1,0 +1,23 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "prConcurrentLimit": 1,
+  "separateMajorMinor": false,
+  "packageRules": [
+    {
+      "matchUpdateTypes": [
+        "major",
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "schedule": [
+        "before 6am on the first day of the month"
+      ],
+      "groupName": "all dependencies"
+    }
+  ]
+}

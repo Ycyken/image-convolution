@@ -1,12 +1,7 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-kotlin = "2.1.20"
-boofcv = "1.2.1"
 
 [plugins]
-kotlin-jvm =  { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin"}
 
 [libraries]
-kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-boofcv = { module = "org.boofcv:boofcv-core", version.ref = "boofcv" }

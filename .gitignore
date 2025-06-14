@@ -6,3 +6,9 @@ build
 
 .idea
 .kotlin
+
+output_image
+output_images
+
+venv
+.venv
