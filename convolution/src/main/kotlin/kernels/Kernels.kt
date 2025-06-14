@@ -9,13 +9,57 @@ fun id(size: Int): Kernel {
 }
 
 fun boxBlur(size: Int): Kernel {
-    val normalizer = (size * size).toFloat()
-    return Kernel(Array(size) { FloatArray(size) { 1.0F / normalizer } })
+    val normalizer = 1.0F / (size * size).toFloat()
+    return Kernel(Array(size) { FloatArray(size) { 1.0F } }) * normalizer
 }
 
 fun motionBlur(size: Int): Kernel {
-    val normalizer = size.toFloat()
-    return Kernel(Array(size) { y -> FloatArray(size) { x -> if (x == y) 1.0F / normalizer else 0.0F } })
+    val normalizer = (1.0F / size.toFloat())
+    return Kernel(Array(size) { y -> FloatArray(size) { x -> if (x == y) 1.0F else 0.0F } }) * normalizer
+}
+
+fun gaussianBlur3x3(): Kernel {
+    val normalizer = 1.0F / 16.0F
+    return Kernel(
+        arrayOf(
+            floatArrayOf(1.0F, 2.0F, 1.0F),
+            floatArrayOf(2.0F, 4.0F, 2.0F),
+            floatArrayOf(1.0F, 2.0F, 1.0F),
+        ),
+    ) * normalizer
+}
+
+fun gaussianBlur5x5(): Kernel {
+    val normalizer = 1.0F / 256.0F
+    return Kernel(
+        arrayOf(
+            floatArrayOf(1.0F, 4.0F, 6.0F, 4.0F, 1.0F),
+            floatArrayOf(4.0F, 16.0F, 24.0F, 16.0F, 4.0F),
+            floatArrayOf(6.0F, 24.0F, 36.0F, 24.0F, 6.0F),
+            floatArrayOf(4.0F, 16.0F, 24.0F, 16.0F, 4.0F),
+            floatArrayOf(1.0F, 4.0F, 6.0F, 4.0F, 1.0F),
+        ),
+    ) * normalizer
+}
+
+fun edges(): Kernel {
+    return Kernel(
+        arrayOf(
+            floatArrayOf(-1.0F, -1.0F, -1.0F),
+            floatArrayOf(-1.0F, 8.0F, -1.0F),
+            floatArrayOf(-1.0F, -1.0F, -1.0F),
+        ),
+    )
+}
+
+fun embos(): Kernel {
+    return Kernel(
+        arrayOf(
+            floatArrayOf(-1.0F, -1.0F, 0.0F),
+            floatArrayOf(-1.0F, 0.0F, 1.0F),
+            floatArrayOf(0.0F, 1.0F, 1.0F),
+        ),
+    )
 }
 
 fun sharpen5(): Kernel {

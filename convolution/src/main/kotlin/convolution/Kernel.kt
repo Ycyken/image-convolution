@@ -54,6 +54,14 @@ class Kernel private constructor(
             }
         }
     }
+
+    operator fun times(other: Float): Kernel {
+        val result = Kernel(this.width)
+        this.forEachIndexed { x, y, value ->
+            result[x, y] = value * other
+        }
+        return result
+    }
 }
 
 internal fun Kernel.convolve(other: Kernel): Kernel {
