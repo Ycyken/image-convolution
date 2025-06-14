@@ -1,5 +1,6 @@
 package bench
 
+import app.startSeqPipeline
 import boofcv.io.image.UtilImageIO
 import convolution.ConvMode
 import convolution.Convolution
@@ -33,9 +34,13 @@ open class BenchPipeline {
     }
 
     @Benchmark
-    fun convolutionBench() {
+    fun parallelPipeline() {
         startPipeline(inputDir, convolution, kernel)
-        return
+    }
+
+    @Benchmark
+    fun seqPipeline() {
+        startSeqPipeline(inputDir, convolution, kernel)
     }
 }
 
