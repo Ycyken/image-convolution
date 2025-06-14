@@ -12,3 +12,6 @@ build
 /*.png
 output_image
 output_images
+
+venv
+.venv
