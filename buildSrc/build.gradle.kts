@@ -8,6 +8,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.21")
-    implementation("org.jlleitschuh.gradle:ktlint-gradle:12.3.0")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
+    implementation("org.jlleitschuh.gradle:ktlint-gradle:13.0.0")
 }
